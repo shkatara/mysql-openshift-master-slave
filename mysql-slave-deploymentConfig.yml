@@ -1,0 +1,42 @@
+kind: "DeploymentConfig"
+apiVersion: "v1"
+metadata:
+  name: "mysql-slave"
+spec:
+  strategy:
+    type: "Recreate"
+  triggers:
+    - type: "ConfigChange"
+  replicas: 1
+  selector:
+    name: "mysql-slave"
+  template:
+    metadata:
+      labels:
+        name: "mysql-slave"
+    spec:
+      containers:
+        - name: "mysql-slave"
+          image: "docker.io/centos/mariadb-103-centos8:latest"
+          command:
+            - "run-mysqld-slave"
+          ports:
+            - containerPort: 3306
+              protocol: "TCP"
+          env:
+            - name: "MYSQL_MASTER_USER"
+              value: "replica"
+            - name: "MYSQL_MASTER_PASSWORD"
+              value: "replica"
+            - name: "MYSQL_DATABASE"
+              value: "mydb"
+            - name: "MYSQL_MASTER_SERVICE_NAME"
+              value: "mysql-master"
+          resources: {}
+          terminationMessagePath: "/dev/termination-log"
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            capabilities: {}
+            privileged: false
+      restartPolicy: "Always"
+      dnsPolicy: "ClusterFirst"
